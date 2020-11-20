@@ -171,7 +171,7 @@ def search_venues():
   # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"  
   
   search = request.form.get('search','')
-  venues = db.session.query(Venue).filter(Venue.name.like('%'+ search +'%')).all()
+  venues = db.session.query(Venue).filter(Venue.name.like('%'+ 'search' +'%')).all()
   data = []
   
   for venue in venues:
@@ -197,6 +197,25 @@ def search_venues():
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
   # shows the venue page with the given venue_id
+
+  venue = Venue.query.get(venue_id)
+
+  upcoming_shows = db.session.query(Show).join(Artist).filter(Show.venue_id == venue_id).all()
+
+  past_shows = db.session.query(Show).join(Artist).filter(Show.venue_id == venue_id)
+
+  data_shows=[]
+
+  for upshow in upcoming_shows:
+    upcoming_shows({
+      'start_time': show.start_time.strftime('%Y-%m-%d %H:%M:%S'),
+      })
+
+  for pshow in past_shows:
+    past_show({
+      'start_time': show.start_time.strftime('%Y-%m-%d %H:%M:%S'),
+      })
+  
   # TODO: replace with real venue data from the venues table, using venue_id
   data1={
     "id": 1,
@@ -359,12 +378,52 @@ def search_artists():
   # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
   # search for "band" should return "The Wild Sax Band".
   
+  search = request.form.get('search','')
+  artists = db.session.query(Artist).filter(Artist.name.like('%'+ search +'%')).all()
+  data = []
+  
+  for artist in artists:
+    num_upcoming_shows = 0
+    shows = db.session.query(Show).filter(Show.Artist_id == Artist.id)
+    for show in shows:
+      if (Show.start_time > datetime.now()):
+        num_upcoming_shows += 1
+    
+    data.append({
+      "id": Artist.id,
+      "name": Artist.name,
+      "num_upcoming_shows": num_upcoming_shows
+    })
+
+  response={
+    "count": len(artists),
+    "data": data
+  }
   
   return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
 
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
   # shows the venue page with the given venue_id
+
+  artist = Artist.query.get(artist_id)
+
+  upcoming_shows = db.session.query(Show).join(Venue).filter(Show.artist_id == artist_id).all()
+
+  past_shows = db.session.query(Show).join(Venue).filter(Show.artist_id == artist_id)
+
+  data_shows=[]
+
+  for upshow in upcoming_shows:
+    upcoming_shows({
+      'start_time': show.start_time.strftime('%Y-%m-%d %H:%M:%S'),
+      })
+
+  for pshow in past_shows:
+    past_show({
+      'start_time': show.start_time.strftime('%Y-%m-%d %H:%M:%S'),
+      })
+
   # TODO: replace with real venue data from the venues table, using venue_id
   
   
