@@ -71,6 +71,13 @@
 		{% endfor %}
 	</div>
 </section>
+<section>
+	<form>
+		<button id = "edit_btn" class="btn btn-primary btn-md btn-block" formaction="/artists/{{artist.id}}/edit"> EDIT </button>
+		<button id = "delete_btn" class="btn btn-danger btn-md btn-block" data-id = "{{artist.id}}"> DELETE </button>
+		<!-- <button id="delete-artist" data-id="{{artist.id}}" class="btn btn-defsult btn-sm">Delete</button> -->
+	</from>
+</section>
 
 {% endblock %}
 
