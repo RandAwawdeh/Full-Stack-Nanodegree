@@ -5,11 +5,11 @@ Fyyur
 
 Fyyur is a musical venue and artist booking site that facilitates the discovery and bookings of shows between local performing artists and venues. This site lets you list new artists and venues, discover them, and list shows with artists as a venue owner.
 
-Your job is to build out the data models to power the API endpoints for the Fyyur site by connecting to a PostgreSQL database for storing, querying, and creating information about artists and venues on Fyyur.
+Your job is to build out the data models to power the API endpoints for the Fyyur site by connecting to a postgreSQL database for storing, querying, and creating information about artists and venues on Fyyur.
 
 ## Overview
 
-This app is nearly complete. It is only missing one thing… real data! While the views and controllers are defined in this application, it is missing models and model interactions to be able to store retrieve, and update data from a database. By the end of this project, you should have a fully functioning site that is at least capable of doing the following, if not more, using a PostgreSQL database:
+This app is nearly complete. It is only missing one thing… real data! While the views and controllers are defined in this application, it is missing models and model interactions to be able to store retrieve, and update data from a database. By the end of this project, you should have a fully functioning site that is at least capable of doing the following, if not more, using a postgreSQL database:
 
 * creating new venues, artists, and creating new shows.
 * searching for venues and artists.
@@ -23,7 +23,7 @@ We want Fyyur to be the next new platform that artists and musical venues can us
 Our tech stack will include the following:
  * **virtualenv** as a tool to create isolated Python environments
  * **SQLAlchemy ORM** to be our ORM library of choice
- * **PostgreSQL** as our database of choice
+ * **postgreSQL** as our database of choice
  * **Python3** and **Flask** as our server language and server framework
  * **Flask-Migrate** for creating and running schema migrations
 You can download and install the dependencies mentioned above using `pip` as:
@@ -107,7 +107,7 @@ Instructions
 Acceptance Criteria
 -----
 
-1. The web app should be successfully connected to a PostgreSQL database. A local connection to a database on your local computer is fine.
+1. The web app should be successfully connected to a postgreSQL database. A local connection to a database on your local computer is fine.
 2. There should be no use of mock data throughout the app. The data structure of the mock data per controller should be kept unmodified when satisfied by real data.
 3. The application should behave just as before with mock data, but now uses real data from a real backend server, with real search functionality. For example:
   * when a user submits a new artist record, the user should be able to see it populate in /artists, as well as search for the artist by name and have the search return results.
