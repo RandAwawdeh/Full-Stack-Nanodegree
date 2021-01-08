@@ -4,9 +4,20 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import random
 
-from flaskr.models import setup_db, Question, Category
+from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
+
+# def paginate_questions(request, selection):
+#   page = request.args.get('page', 1, type=int)
+#   start = (page-1)*QUESTIONS_PER_PAGE
+#   end = start + QUESTIONS_PER_PAGE
+
+#   questions = [question.format() for question in selection]
+#   current_questions = questions[start:end]
+
+#   return current_questions
+
 
 def create_app(test_config=None):
   # create and configure the app
@@ -44,8 +55,8 @@ def create_app(test_config=None):
   @app.route('/categories', methods=['GET'])
   def get_all_categories():
     categories = Category.query.order_by(Category.id).all()
-    formated_categories = [Category.format() for category in categories]
-    
+    formated_categories = [category.format() for category in categories]
+    print(formated_categories)
     return jsonify({
       'success': True,
       'categories': formated_categories
@@ -63,19 +74,19 @@ def create_app(test_config=None):
   ten questions per page and pagination at the bottom of the screen for three pages.
   Clicking on the page numbers should update the questions. 
   '''
+  
   @app.route('/questions', methods=['GET'])
   def get_questions():
-    page = request.args.get('page',1,type=int)
-    start = (page - 1 ) * QUESTIONS_PER_PAGE
-    end = start + QUESTIONS_PER_PAGE
     
-    questions = db.session.query(Category).all()
-    formated_questions = [Question.format() for question in questions]
+    questions = Question.query.all()
+    formated_questions = [question.format() for question in questions]
 
+    all_categories = Category.query.all()
     current_category = request.args.get('currentCategory', None)
-    all_categories = db.session.query(Category).all()
     
-    categories = [Category.format() for category in all_categories]
+    categories = [category.format() for category in all_categories]
+
+    print(categories, questions)
 
     return jsonify({
       'success': True,
@@ -198,9 +209,9 @@ def create_app(test_config=None):
     body = request.get_json()
 
     try:
-      selected_category = Category.query.filter_by(Category.id == category_id).one_or_none
+      selection = Category.query.filter_by(Category.id == category_id).one_or_none
       questions = Question.query.filter_by(Question.category == str(category_id)).all()
-      current_category = paginate_categories(request, selected_category)
+      current_category = paginate_categories(request, selection)
 
       return jsonify({
         'success': True,
