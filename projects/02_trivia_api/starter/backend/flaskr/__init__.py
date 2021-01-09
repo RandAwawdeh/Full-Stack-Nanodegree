@@ -4,19 +4,19 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import random
 
-from models import setup_db, Question, Category
+from flaskr.models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
 
-def paginate_questions(request, selection):
-  page = request.args.get('page', 1, type=int)
-  start = (page-1)*QUESTIONS_PER_PAGE
-  end = start + QUESTIONS_PER_PAGE
+# def paginate_questions(request, selection):
+#   page = request.args.get('page', 1, type=int)
+#   start = (page-1)*QUESTIONS_PER_PAGE
+#   end = start + QUESTIONS_PER_PAGE
 
-  questions = [question.format() for question in selection]
-  current_questions = questions[start:end]
+#   questions = [question.format() for question in selection]
+#   current_questions = questions[start:end]
   
-  return current_questions
+#   return current_questions
 
 def create_app(test_config=None):
   # create and configure the app
@@ -53,8 +53,8 @@ def create_app(test_config=None):
   '''
   @app.route('/categories', methods=['GET'])
   def get_all_categories():
-    categories = Category.query.order_by(Category.id).all()
-    formated_categories = [category.format() for category in categories]
+    categories = Category.query.all()
+    formated_categories = {category.id: category.type for category in categories}
     print(formated_categories)
     return jsonify({
       'success': True,
@@ -76,26 +76,24 @@ def create_app(test_config=None):
   
   @app.route('/questions', methods=['GET'])
   def get_questions():
-    # page = request.args.get('page',1,type=int)
-    # start = (page - 1 ) * QUESTIONS_PER_PAGE
-    # end = start + QUESTIONS_PER_PAGE
+    page = request.args.get('page',1,type=int)
+    start = (page - 1 ) * QUESTIONS_PER_PAGE
+    end = start + QUESTIONS_PER_PAGE
     
-    selection = Question.query.order_by(Question.id).all()
-    #formated_questions = [question.format() for question in questions]
-    current_questions = paginate_questions(request, selection)
+    questions = Question.query.all()
+    formated_questions = [question.format() for question in questions]
 
-    categories = Category.query.order_by(Category.id).all()
+    categories = Category.query.all()
+    formated_categories = {category.id: category.type for category in categories}
 
-    #current_category = request.args.get('currentCategory', None)
-    all_categories = [category.format() for category in categories]
 
     print(categories)
 
     return jsonify({
       'success': True,
-      'questions': current_questions,
-      'total_questions': len(selection),
-      'categories': all_categories,
+      'questions': formated_questions[start:end],
+      'total_questions': len(formated_questions),
+      'categories': formated_categories,
       'current_category': None
     })
 
@@ -133,7 +131,7 @@ def create_app(test_config=None):
   the form will clear and the question will appear at the end of the last page
   of the questions list in the "List" tab.  
   '''
-  @app.route('/questions', methods=['POST'])
+  @app.route('/add', methods=['POST'])
   def create_question():
     body = request.get_json()
 
@@ -146,14 +144,8 @@ def create_app(test_config=None):
       question = Question(question=new_question,answer=new_answer,category=new_category,difficulty=new_difficulty)
       question.insert()
 
-      selection = Question.query.all()
-      questions_list = paginate_questions(request, selection)
-
       return jsonify({
         'success': True,
-        'created': question.id,
-        'questions': questions_list,
-        'total_questions': len(Category.query.all())
       })
     except:
       abort(404)
