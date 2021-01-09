@@ -163,20 +163,21 @@ def create_app(test_config=None):
   '''
   @app.route('/questions/search', methods=['POST'])
   def search_question():
-    body = request.get_json()
-    search_term = body.get('searchTerm', None)
+    #body = request.get_json()
+    #search_term = body.get('searchTerm')
 
     try:
-      if search_term:
-        selection = Question.query.order_by(Question.id).filter(Question.question.ilike('%{}%'.format(search_term)))
-        current_questions = paginate_questions(request,selection)
-
-        return jsonify({
-          'success': True,
-          'questions': current_questions,
-          'total_questions': len(selection.all()),
-          'current_category': None
-        })
+      search_term = request.json.get('searchTerm')
+      questions = Question.query.filter(Question.question.ilike('%{}%'.format(search_term))).all()
+      #questions = paginate_questions(request,selection)
+      formatted_questions = [question.format() for question in questions]
+      
+      return jsonify({
+        'success': True,
+        'questions': formatted_questions,
+        'total_questions': len(questions),
+        'current_category': None
+      })
       
     except:
       abort(404)
@@ -190,18 +191,22 @@ def create_app(test_config=None):
   category to be shown. 
   '''
   @app.route('/categories/<int:category_id>/questions', methods=['GET'])
-  def get_categories(category_id):
-    body = request.get_json()
+  def getby_categories(category_id):
 
     try:
-      selection = Category.query.filter_by(Category.id == category_id).one_or_none
-      questions = Question.query.filter_by(Question.category == str(category_id)).all()
-      current_category = paginate_categories(request, selection)
+        #selected category
+      category = Category.query.filter_by(Category.id == category_id).one_or_none
+        #selected Q
+      questions = Question.query.filter_by(category=str(category_id)).all()
+      
+      current_questions = paginate_questions(request, questions)
+      #formatted_questions = [question.format() for question in questions]
 
       return jsonify({
         'success': True,
-        'current_category': current_category,
-        'total_questions': len(Category.query.all())
+        'questions':current_questions,
+        'total_questions': len(questions),
+        'current_category': category.format(),
       })
 
     except:
