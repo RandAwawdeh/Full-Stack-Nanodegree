@@ -1,5 +1,5 @@
 import json
-from flask import request, _request_ctx_stack
+from flask import request, _request_ctx_stack, abort
 from functools import wraps
 from jose import jwt
 from urllib.request import urlopen
@@ -62,13 +62,13 @@ def check_permissions(permission, payload):
         raise AuthError({
             'code':'invalid_claims',
             'description':'Permissions not included in JWT.'
-    }, 400)
+        }, 400)
     # check if the requested permission exists in that permission
     if 'permissions' not in payload['permissions']:
         raise AuthError({
             'code':'unauthorized',
             'description':'Permissions not found.'
-    }, 403)
+        }, 403)
     
     return True
 
@@ -87,7 +87,7 @@ def check_permissions(permission, payload):
     !!NOTE urlopen has a common certificate error described here: https://stackoverflow.com/questions/50236117/scraping-ssl-certificate-verify-failed-error-for-http-en-wikipedia-org
 '''
 def verify_decode_jwt(token):
-    jsonurl = urlopen(f'https//{AUTH0_DOMAIN}/.well-known/jwks.json')
+    jsonurl = urlopen(f'https://{AUTH0_DOMAIN}/.well-known/jwks.json')
     jwks = json.loads(jsonurl.read())
     unverified_header = jwt.get_unverified_header(token)
     rsa_key = {}
@@ -126,7 +126,7 @@ def verify_decode_jwt(token):
         except jwt.JWTClaimsError:
             raise AuthError({
                 'code': 'invalid_claims',
-                'description': 'Token Expired.',
+                'description': 'invalid_claims',
             },401)
 
         except Exception:
@@ -135,9 +135,9 @@ def verify_decode_jwt(token):
                 'description': 'Unable to find the parse authentication token.',
             },400)
     raise AuthError({
-                'code': 'invalid_header',
-                'description':'Unable to find the appropriate key.'
-            },400)
+        'code': 'invalid_header',
+        'description':'Unable to find the appropriate key.'
+    },400)
 '''
 @TODO implement @requires_auth(permission) decorator method
     @INPUTS
@@ -148,15 +148,16 @@ def verify_decode_jwt(token):
     it should use the check_permissions method validate claims and check the requested permission
     return the decorator which passes the decoded payload to the decorated method
 '''
-def requires_auth(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        jwt = get_token_auth_header()
-        try:
-            payload = verify_decode_jwt(jwt)
-            #check_permissions(permission, payload)
-        except:
-            abort(401)
-        return f(payload, *args, **kwargs)
+def requires_auth(permission=''):
+    def requires_auth_decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            jwt = get_token_auth_header()
 
-    return wrapper
+            payload = verify_decode_jwt(jwt)
+                
+            check_permissions(permission, payload)
+            return f(payload, *args, **kwargs)
+
+        return wrapper
+    return requires_auth_decorator

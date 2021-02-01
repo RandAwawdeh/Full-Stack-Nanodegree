@@ -28,10 +28,6 @@ db_drop_and_create_all()
         or appropriate status code indicating reason for failure
 '''
 
-@app.route('/', methods=['GET'])
-def greeting_all():
-    return jsonify({'greetings': "hi"})
-
 @app.route('/drinks', methods=['GET'])
 def get_drinks():
     all_drinks = Drink.query.all()
@@ -82,14 +78,15 @@ def add_drinks(payload):
         new_drink.insert()
 
         drink = Drink.long(new_drink)
-        
-        return jsonify({
-            'success': True, 
-            'drinks': drink
-        }),200
-
+    
     except:
         abort(404)
+        
+    return jsonify({
+        'success': True, 
+        'drinks': drink
+    }),200
+
 '''
 @TODO implement endpoint
     PATCH /drinks/<id>
@@ -101,25 +98,33 @@ def add_drinks(payload):
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
         or appropriate status code indicating reason for failure
 '''
-@app.route('/drinks/<int:drink_id>', methods=['PATCH'])
+@app.route('/drinks/<int:id>', methods=['PATCH'])
 @requires_auth('patch:drinks')
-def update_drinks(payload, drink_id):
-    drink = Drink.query.filter_by(Drink.id == drink_id).one_or_none()
+def update_drinks(payload, id):
+    body = request.get_json()
+    drink = Drink.query.filter_by(id == id).one_or_none()
 
     if drink is None:
         abort(404)
 
     try:
-
-        drink = Drink.long(new_drink)
+        new_title = body.get('title')
+        new_recipe = body.get('recipe')
         
-        return jsonify({
-            'success': True, 
-            'drinks': drink
-        }),200
+        drink.title = new_title
+        drink.recipe = new_recipe
+
+        drink.update()
+
+        drink = drink.long()
 
     except:
         abort(404)
+    
+    return jsonify({
+        'success': True, 
+        'drinks': drink
+    }),200
 
 '''
 @TODO implement endpoint
@@ -131,24 +136,27 @@ def update_drinks(payload, drink_id):
     returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
         or appropriate status code indicating reason for failure
 '''
-@app.route('/drinks/<int:drink_id>', methods=['DELETE'])
+@app.route('/drinks/<int:id>', methods=['DELETE'])
 @requires_auth('delete:drinks')
-def update_drinks(payload, drink_id):
-    drink = Drink.query.filter_by(Drink.id == drink_id).one_or_none()
-
-    if drink is None:
-        abort(404)
+def delete_drinks(payload, id):
+    drink = Drink.query.filter_by(Drink.id == id).one_or_none()
 
     try:
+
+        if drink is None:
+            abort(404)
+
         drink.delete()
-        
+    
         return jsonify({
             'success': True, 
-            'delete': drink_id
-        }), 200
+            'delete': id
+        }),200
 
     except:
-        abort(404)
+        abort(422)
+
+
 
 ## Error Handling
 '''
@@ -189,7 +197,7 @@ def authError(error):
     return jsonify({
         "success": False, 
         "error": 401,
-        "message": "authorize error"
+        "message": "unauthorize error"
     }), 401
 
 '''
